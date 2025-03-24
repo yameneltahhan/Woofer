@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestion des Responsables</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background-color: #f4f4f4;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    .form-container {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      max-width: 600px;
+      margin: 2rem auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background: #2ecc71;
+      color: white;
+      border: none;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 2rem;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background: #2980b9;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Gestion des Responsables</h1>
+
+  <div class="form-container">
+    <input id="nom" placeholder="Nom du responsable" />
+    <input id="type" placeholder="Type de responsabilité" />
+    <input id="date" type="date" />
+    <button onclick="ajouterResponsable()">Ajouter</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Date Affectation</th>
+        <th>Type</th>
+      </tr>
+    </thead>
+    <tbody id="responsable-table"></tbody>
+  </table>
+
+  <script>
+    async function chargerResponsables() {
+      const res = await fetch("/api/responsables");
+      const data = await res.json();
+      const table = document.getElementById("responsable-table");
+      table.innerHTML = "";
+      data.forEach(r => {
+        table.innerHTML += `
+          <tr>
+            <td>${r.ID_Responsable}</td>
+            <td>${r.Nom_Responsable}</td>
+            <td>${r.Date_Affectation}</td>
+            <td>${r.Type_Resp}</td>
+          </tr>`;
+      });
+    }
+
+    async function ajouterResponsable() {
+  const nom = document.getElementById("nom").value;
+  const type = document.getElementById("type").value;
+  const date = document.getElementById("date").value;
+
+  await fetch("/api/responsables", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      Nom_Responsable: nom,
+      Type_Resp: type,
+      Date_Affectation: date
+    })
+  });
+
+  // Recharge la liste après ajout
+  await chargerResponsables();
+}
+
+  </script>
+
+</body>
+</html>

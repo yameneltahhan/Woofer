@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestion de Stock</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #ffffff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-top: 2rem;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid #ccc;
+      text-align: center;
+    }
+
+    th {
+      background-color: #3498db;
+      color: white;
+    }
+
+    input[type="number"] {
+      width: 60px;
+      padding: 0.4rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #2ecc71;
+      border: none;
+      padding: 0.4rem 1rem;
+      color: white;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #27ae60;
+    }
+
+    .alerte {
+      background-color: #ffdddd;
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Gestion de Stock</h1>
+  <div id="alerte-zone" style="display:none; background:#ffe6e6; color:#c0392b; padding:1rem; margin:1rem auto; text-align:center; border:1px solid #e74c3c; max-width:600px; border-radius:8px;">
+    ⚠️ Attention : certains produits ont un stock critique inférieur à 50 unités !
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Catégorie</th>
+        <th>Produit</th>
+        <th>Stock Disponible</th>
+        <th>Origine</th>
+        <th>Ajouter Stock</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="stock-table"></tbody>
+  </table>
+
+  <script>
+    let stockData = [];
+
+    async function chargerStock() {
+      const res = await fetch("/api/stock");
+      stockData = await res.json();
+      afficherStock();
+    }
+
+    function afficherStock() {
+  const table = document.getElementById("stock-table");
+  table.innerHTML = "";
+
+  const elevageSources = {
+    "Oeufs": "Poule Pondeuse",
+    "Lait": "Chèvre",
+    "Fromage": "Chèvre",
+  };
+
+  let alerteActive = false;
+
+  stockData.forEach((item, index) => {
+    const categorie = item.Nom_Produit.includes("Poule") || item.Nom_Produit === "Chèvre" ? "Élevage" : "Produits";
+    const stockClass = item.Stock_Dispo < 50 ? "alerte" : "";
+    const source = elevageSources[item.Nom_Produit] || "-";
+
+    if (item.Stock_Dispo < 50) alerteActive = true;
+
+    table.innerHTML += `
+      <tr>
+        <td>${categorie}</td>
+        <td>${item.Nom_Produit}</td>
+        <td class="${stockClass}" id="stock-${index}">${item.Stock_Dispo}</td>
+        <td>${source}</td>
+        <td><input type="number" min="1" id="input-${index}" /></td>
+        <td><button onclick="ajouterStock(${index})">Ajouter</button></td>
+      </tr>
+    `;
+  });
+
+  // Afficher ou cacher l'alerte
+  document.getElementById("alerte-zone").style.display = alerteActive ? "block" : "none";
+}
+
+
+    async function ajouterStock(index) {
+      const input = document.getElementById(`input-${index}`);
+      const valeur = parseInt(input.value);
+      if (!isNaN(valeur) && valeur > 0) {
+        await fetch("/api/stock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            Nom_Produit: stockData[index].Nom_Produit,
+            Quantite: valeur
+          })
+        });
+        chargerStock(); // Recharge après ajout
+      } else {
+        alert("Veuillez entrer une quantité valide.");
+      }
+    }
+
+    // Démarrage
+    chargerStock();
+  </script>
+
+</body>
+</html>

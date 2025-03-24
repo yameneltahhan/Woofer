@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Menu Principal</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f8f9fa, #e0f7fa);
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 3rem;
+      color: #2c3e50;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .menu button {
+      background: #3498db;
+      color: white;
+      font-size: 1.1rem;
+      padding: 1.2rem 2rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+
+    .menu button:hover {
+      background-color: #2980b9;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .emoji {
+      font-size: 1.4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1><span class="emoji">📋</span> Menu Principal</h1>
+
+  <div class="menu">
+    <button onclick="location.href='/ventes'">
+      <span class="emoji">🛒</span> Gestion des Ventes
+    </button>
+    <button onclick="location.href='/woofers'">
+      <span class="emoji">🧑‍🌾</span> Gestion des Woofers
+    </button>
+    <button onclick="location.href='/ateliers'">
+      <span class="emoji">🏡</span> Gestion des Ateliers
+    </button>
+    <button onclick="location.href='/stock'">
+      <span class="emoji">📦</span> Gestion du Stock
+    </button>
+  </div>
+
+</body>
+</html>

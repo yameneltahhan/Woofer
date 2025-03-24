@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Créer un Atelier</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
+      margin: 2rem;
+    }
+  
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 2rem;
+    }
+  
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
+  
+    .form-container {
+      background: #ffffff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+  
+    .form-container input,
+    .form-container select,
+    .form-container button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+  
+    .form-container button {
+      background-color: #27ae60;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+  
+    .form-container button:hover {
+      background-color: #219150;
+    }
+  
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+  
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+  
+    th {
+      background-color: #3498db;
+      color: white;
+    }
+  
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+  
+    td button {
+      padding: 0.5rem 1rem;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  
+    td button:hover {
+      background-color: #c0392b;
+    }
+  
+    /* Pour les petits écrans */
+    @media (max-width: 768px) {
+      .form-container, .container {
+        padding: 1rem;
+      }
+  
+      table, th, td {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+  
+
+</head>
+<body>
+
+  <h1>Création d'un Atelier</h1>
+
+  <div class="form-container">
+    <label>Nom de l’atelier</label>
+    <input id="nomAtelier" type="text" required />
+
+    <label>Date de création</label>
+    <input id="date" type="date" required />
+
+    <label>Capacité maximale</label>
+    <input id="capacite" type="number" min="1" oninput="genererSelectsWoofer()" required />
+
+    <label>Catégorie</label>
+    <select id="categorie" required>
+      <option disabled selected>-- Choisir --</option>
+      <option value="Alimentaire">Alimentaire</option>
+      <option value="Élevage">Élevage</option>
+      <option value="Culture">Culture</option>
+    </select>
+
+    <label>Woofer responsable</label>
+    <select id="responsable">
+      <option disabled selected>-- Sélectionner un responsable --</option>
+    </select>
+
+    <div class="woofer-selects" id="inscriptions-container"></div>
+
+    <button onclick="ajouterAtelier()">Créer l'atelier</button>
+  </div>
+
+  <h2 style="text-align:center; margin-top: 3rem;">Liste des Ateliers</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nom</th>
+          <th>Catégorie</th>
+          <th>Responsable</th>
+          <th>Capaciter</th>
+          <th>Date</th>
+          <th>action</th>
+        </tr>
+      </thead>
+  <tbody id="atelier-table"></tbody>
+</table>
+
+  <script>
+    let wooferList = [];
+
+    async function chargerWoofers() {
+      const res = await fetch("/api/woofers");
+      wooferList = await res.json();
+
+      const responsableSelect = document.getElementById("responsable");
+      responsableSelect.innerHTML = '<option disabled selected>-- Sélectionner un responsable --</option>';
+      wooferList.forEach(w => {
+        const opt = new Option(`${w.ID_Woofer} - ${w.Nom_Woofer} ${w.Prenom_Woofer}`, w.Nom_Woofer);
+        responsableSelect.add(opt);
+      });
+
+      genererSelectsWoofer(); // recharge aussi les inscrits
+    }
+
+    function genererSelectsWoofer() {
+      const capacite = +document.getElementById("capacite").value;
+      const container = document.getElementById("inscriptions-container");
+      container.innerHTML = ""; // reset
+
+      for (let i = 0; i < capacite; i++) {
+        const label = document.createElement("label");
+        label.textContent = `Woofer inscrit #${i + 1}`;
+
+        const select = document.createElement("select");
+        select.name = "wooferInscrit";
+        select.innerHTML = '<option value="">-- Choisir --</option>';
+
+        wooferList.forEach(w => {
+          const opt = new Option(`${w.ID_Woofer} - ${w.Nom_Woofer} ${w.Prenom_Woofer}`, w.ID_Woofer);
+          select.add(opt);
+        });
+
+        container.appendChild(label);
+        container.appendChild(select);
+      }
+    }
+
+    async function ajouterAtelier() {
+      const nom = document.getElementById("nomAtelier").value;
+      const date = document.getElementById("date").value;
+      const capacite = +document.getElementById("capacite").value;
+      const categorie = document.getElementById("categorie").value;
+      const nomResponsable = document.getElementById("responsable").value;
+
+      const inscriptions = [];
+      document.querySelectorAll("select[name='wooferInscrit']").forEach(s => {
+        if (s.value) inscriptions.push(+s.value);
+      });
+
+      const body = {
+        Nom_Atelier: nom,
+        Date_Atelier: date,
+        Capacite_Max: capacite,
+        Categorie_Produit: categorie,
+        Nom_Responsable: nomResponsable,
+        Inscrits: inscriptions // tableau d’ID_Woofer
+      };
+
+      const res = await fetch("/api/ateliers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert(" Atelier créé avec succès !");
+      } else {
+        alert(" Erreur lors de l’ajout.");
+        console.error(result);
+      }
+    }
+
+    //liste atelier besoin
+    function chargerAteliers() {
+  fetch("/api/ateliers")
+    .then((res) => res.json())
+    .then((liste) => {
+      const table = document.getElementById("atelier-table");
+      table.innerHTML = "";
+      liste.forEach((a) => {
+        table.innerHTML += `
+          <tr>
+            <td>${a.ID_Atelier}</td>
+            <td>${a.Nom_Atelier}</td>
+            <td>${a.Categorie_Produit}</td>
+            <td>${a.Nom_Responsable || "-"}</td>
+            <td>${a.Capacite_Max}</td>
+            <td>${a.Date_Atelier}</td>
+            <td>
+              <button onclick="supprimerAtelier(${a.ID_Atelier})" style="background:red; color:white; border:none; padding:5px 10px; border-radius:5px;">🗑️</button>
+            </td>
+          </tr>
+        `;
+      });
+    });
+}
+async function supprimerAtelier(id) {
+  await fetch(`/api/ateliers/${id}`, { method: "DELETE" });
+  chargerAteliers();
+}
+
+    chargerWoofers();
+    chargerAteliers();
+  </script>
+</body>
+</html>
+
+

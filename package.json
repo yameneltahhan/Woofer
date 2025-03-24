@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.40.1",
+    "hono": "^4.7.5",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/sqlite3": "^5.1.0",
+    "drizzle-kit": "^0.30.5"
+  }
+}

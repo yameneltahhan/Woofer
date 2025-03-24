@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestion des Woofers</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background-color: #f0f4f8;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    .form-container {
+      background: #ffffff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      max-width: 600px;
+      margin: 2rem auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .form-container input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .form-container button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #27ae60;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .form-container button:hover {
+      background-color: #219150;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #2980b9;
+      color: white;
+    }
+
+    td button {
+      padding: 0.4rem 0.8rem;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    td button:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Gestion des Woofers</h1>
+
+  <div class="form-container">
+    <input id="nom" placeholder="Nom" />
+    <input id="prenom" placeholder="Prénom" />
+    <label>Date de l'inscription</label>
+    <input id="debut" type="date" />
+    <label>Date de fin contrainte</label>
+    <input id="fin" type="date" />
+    <button onclick="ajouterWoofer()">Enregistrer</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Prénom</th>
+        <th>Début</th>
+        <th>Fin</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="woofer-table"></tbody>
+  </table>
+
+  <script>
+    async function chargerWoofers() {
+      const res = await fetch("/api/woofers");
+      const liste = await res.json();
+      const table = document.getElementById("woofer-table");
+      table.innerHTML = "";
+      liste.forEach((w) => {
+        table.innerHTML += `
+          <tr>
+            <td>${w.ID_Woofer}</td>
+            <td>${w.Nom_Woofer}</td>
+            <td>${w.Prenom_Woofer}</td>
+            <td>${w.Date_Debut_Sejour}</td>
+            <td>${w.Date_Fin_Sejour}</td>
+            <td><button onclick="supprimerWoofer(${w.ID_Woofer})">🗑️</button></td>
+          </tr>`;
+      });
+    }
+
+    async function ajouterWoofer() {
+      const nom = document.getElementById("nom").value;
+      const prenom = document.getElementById("prenom").value;
+      const debut = document.getElementById("debut").value;
+      const fin = document.getElementById("fin").value;
+      await fetch("/api/woofers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          Nom_Woofer: nom,
+          Prenom_Woofer: prenom,
+          Date_Debut_Sejour: debut,
+          Date_Fin_Sejour: fin
+        })
+      });
+      chargerWoofers();
+    }
+
+    async function supprimerWoofer(id) {
+      await fetch(`/api/woofers/${id}`, { method: "DELETE" });
+      chargerWoofers();
+    }
+
+    chargerWoofers();
+  </script>
+
+</body>
+</html>

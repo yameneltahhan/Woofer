@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestion des Ventes</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f9fa; margin: 2rem; }
+    h1 { text-align: center; color: #34495e; }
+    .form-container {
+      background: white; padding: 1.5rem; border-radius: 10px;
+      max-width: 600px; margin: 1rem auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .form-container input, .form-container select {
+      width: 100%; margin: 0.5rem 0; padding: 0.8rem;
+      font-size: 1rem; border: 1px solid #ccc; border-radius: 6px;
+    }
+    .form-container button {
+      background-color: #2ecc71; color: white;
+      padding: 0.8rem; width: 100%;
+      border: none; border-radius: 6px;
+      cursor: pointer; font-weight: bold;
+    }
+    table {
+      width: 100%; margin-top: 2rem;
+      border-collapse: collapse; background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 1rem; text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th { background: #3498db; color: white; }
+    td button {
+      background: #e74c3c; color: white;
+      border: none; padding: 0.5rem 0.8rem;
+      border-radius: 4px; cursor: pointer;
+    }
+    td button:hover { background: #c0392b; }
+  </style>
+</head>
+<body>
+
+  <h1>Gestion des Ventes</h1>
+
+  <div class="form-container">
+    <select id="produit"></select>
+    <input id="quantite" type="number" placeholder="Quantité achetée" />
+    <input id="date" type="date" />
+    <select id="woofer"></select>
+    <button onclick="ajouterVente()">Enregistrer</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Produit</th>
+        <th>Quantité</th>
+        <th>Montant</th>
+        <th>Date</th>
+        <th>Woofer</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="vente-table"></tbody>
+  </table>
+
+  <script>
+    async function chargerProduits() {
+      const res = await fetch("/api/stock");
+      const data = await res.json();
+      const select = document.getElementById("produit");
+      select.innerHTML = '';
+      data.forEach(p => {
+        const option = document.createElement("option");
+        option.value = p.Nom_Produit;
+        option.textContent = p.Nom_Produit;
+        select.appendChild(option);
+      });
+    }
+
+    async function chargerWoofers() {
+      const res = await fetch("/api/woofers");
+      const data = await res.json();
+      const select = document.getElementById("woofer");
+      select.innerHTML = '';
+      data.forEach(w => {
+        const option = document.createElement("option");
+        option.value = w.ID_Woofer;
+        option.textContent = `${w.ID_Woofer} - ${w.Nom_Woofer}`;
+        select.appendChild(option);
+      });
+    }
+
+    async function chargerVentes() {
+      const res = await fetch("/api/ventes");
+      const data = await res.json();
+      const table = document.getElementById("vente-table");
+      table.innerHTML = "";
+      data.forEach(v => {
+        table.innerHTML += `
+          <tr>
+            <td>${v.Nom_Produit}</td>
+            <td>${v.Quantite_Achat}</td>
+            <td>${v.Montant_Total.toFixed(2)} €</td>
+            <td>${v.Date_Vente}</td>
+            <td>${v.Nom_Woofer || v.ID_Woofer}</td>
+            <td><button onclick="supprimerVente(${v.ID_Vente})">🗑️</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    async function ajouterVente() {
+      const produit = document.getElementById("produit").value;
+      const quantite = +document.getElementById("quantite").value;
+      const date = document.getElementById("date").value;
+      const woofer = +document.getElementById("woofer").value;
+
+      if (!produit || !quantite || !date || !woofer) {
+        alert("Veuillez remplir tous les champs.");
+        return;
+      }
+
+      const res = await fetch("/api/ventes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          Nom_Produit: produit,
+          Quantite_Achat: quantite,
+          Date_Vente: date,
+          ID_Woofer: woofer
+        })
+      });
+
+      if (res.ok) {
+        chargerVentes();
+        document.getElementById("quantite").value = "";
+        document.getElementById("date").value = "";
+      } else {
+        alert("Erreur lors de l'ajout de la vente.");
+      }
+    }
+
+    async function supprimerVente(id) {
+      await fetch(`/api/ventes/${id}`, { method: "DELETE" });
+      chargerVentes();
+    }
+
+    // Initialisation
+    chargerProduits();
+    chargerWoofers();
+    chargerVentes();
+  </script>
+
+</body>
+</html>
